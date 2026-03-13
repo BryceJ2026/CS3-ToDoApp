@@ -3,13 +3,13 @@
 
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Create Flask app instance
 app = Flask(__name__)
 
 #Create SQLite database instance
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taskks.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasks.db'
 db = SQLAlchemy(app)
 
 
@@ -17,7 +17,8 @@ db = SQLAlchemy(app)
 class Task(db.Model):
     #db.Column represents a col in the database
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(200), )
+    content = db.Column(db.String(200))
+    date_created = db.Column(db.DateTime, default=datetime.now())
 
 
 
@@ -25,10 +26,10 @@ class Task(db.Model):
 @app.route('/', methods=['GET', 'POST'])
 def index():
 
-if request.method == 'POST':
+    if request.method == 'POST':
         task_content = request.form('content')
-        new_task = Task
-#Add new Task to database
+        new_task = Task(content=task_content)
+        #Add new Task to database
         try :
              db.session.add(new_task)
              db.session.commit()
@@ -36,9 +37,10 @@ if request.method == 'POST':
         except:
              return 'Error adding task!'
         
-        #Select all Taks from database
-        all_tasks = Task query.all()
-return render__template('index.html'. tasks=all_tasks)
+        # Select all Taks from database
+    all_tasks = Task.query.all()
+    return render_template('index.html', tasks=all_tasks)
+    
 # Create the database in the man method
 if __name__ == "__main__":
     with app.app_context():
